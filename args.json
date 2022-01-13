@@ -1,0 +1,63 @@
+{
+    "-g": {
+        "alias": "--get",
+        "desc": "Get illusts' pictures from the given list",
+        "n": -1,
+        "type": "list of string with pure numbers"
+    },
+    "-d": {
+        "alias": "--database",
+        "desc": "Get illusts' pictures into a self-built database",
+        "n": -1,
+        "type": "list of string with pure numbers"
+    },
+    "-m": {
+        "alias": "--mirror",
+        "desc": "Use mirror instead of Pixiv",
+        "father": [
+            "-g",
+            "-d"
+        ],
+        "n": 0
+    },
+    "--headless": {
+        "desc": "Set to work headless without displaying the browser UI",
+        "father": [
+            "-g",
+            "-d",
+            "--doujin"
+        ],
+        "n": 0
+    },
+    "--profile": {
+        "desc": "Set the given browser's profile and write to the configuration file",
+        "n": 2,
+        "type": "The first string represents a browser, and the second a directory."
+    },
+    "--browser": {
+        "desc": "Set the current working browser. Supports Edge, Chrome and Firefox.",
+        "n": 1,
+        "type": "string in ['edge', 'chrome', 'firefox']"
+    },
+    "--r18": {
+        "desc": "Set whether to start up with configuring r18. Only available for original Pixiv crawler.",
+        "n": 1,
+        "type": "string in ['true', 'false']"
+    },
+    "--doujin": {
+        "desc": "Get r-18 doujin manga from given website. Some searching keywords featuring characters or works are needed.",
+        "n": -1,
+        "type": "list of string"
+    },
+    "--cap": {
+        "desc": "Set the maximum number of targets you want to get. If this option is not set, the process will fall dafault to None.",
+        "n": 1,
+        "father": ["--doujin", "-g", "-d"],
+        "type": "A specified number or None to get all searching results."
+    },
+    "-h": {
+        "alias": "--help",
+        "desc": "Get help",
+        "n": 0
+    }
+}

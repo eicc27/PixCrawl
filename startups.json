@@ -1,0 +1,29 @@
+{
+    "firefox": {
+        "profile": "C:/Users/Chan/AppData/Roaming/Mozilla/Firefox/Profiles/f4tai5kr.default-release-1632531921248"
+    },
+    "chrome": {
+        "profile": "C:/Users/Chan/AppData/Local/Google/Chrome/User Data"
+    },
+    "edge": {
+        "profile": "C:/Users/Chan/AppData/Local/Microsoft/Edge/User Data/Profile 1"
+    },
+    "browser": "edge",
+    "r18": true,
+    "format": {
+        "mirror": {
+            "illustrator": "https://www.vilipix.com/user/",
+            "origin": "http://img3.vilipix.com/picture/pages/original/",
+            "picture": "https://www.vilipix.com/illust/"
+        },
+        "pixiv": {
+            "illustrator": "https://www.pixiv.net/users/",
+            "origin": "https://i.pximg.net/img-original/img/",
+            "picture": "https://www.pixiv.net/artworks/"
+        }
+    },
+    "doujin": [
+        "http://ddd-smart.net/",
+        "http://doujinnomori.com/"
+    ]
+}
