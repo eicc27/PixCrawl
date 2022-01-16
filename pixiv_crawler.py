@@ -4,6 +4,7 @@ from downloader import Downloader
 from urllib import request as req
 from urllib import error
 from strformat import StrFormat
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
 class PixivCrawler(Crawler):
@@ -65,11 +66,13 @@ class PixivCrawler(Crawler):
         while True:
             print(f"Getting {name}'s pictures. Page {ind}...")
             driver.get(f"{self.illust_url_base}{id}/artworks?p={ind}")
-            WebDriverWait(driver, 10).until(ec.presence_of_all_elements_located(("xpath", "//div[3]/div[1]//li[1]//a//img")))
+            try:
+                WebDriverWait(driver, 15).until(ec.presence_of_all_elements_located(("xpath", "//div[3]/div[1]//li[1]//a//img")))
+                driver.save_screenshot("./test.png")
+            except TimeoutException:
+                break
             Crawler.scroll(driver)
             pic_elems = driver.find_elements("xpath",  "//div[3]/div[1]//a//img")
-            if pic_elems == []:
-                break
             # "string(//li[x]//div/span[2])"
             series = []
             isr18 = []
@@ -90,9 +93,9 @@ class PixivCrawler(Crawler):
                 end = pic.rfind("_p")
                 pic = pic[start:end]
                 self.expand(f"{id} {name}", pic, num, r18)
-                total += 1
                 if self.cap and total > self.cap:
                     break
+                total += 1
             if self.cap and total > self.cap:
                 break
             ind += 1

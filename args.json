@@ -24,8 +24,7 @@
         "desc": "Set to work headless without displaying the browser UI",
         "father": [
             "-g",
-            "-d",
-            "--doujin"
+            "-d"
         ],
         "n": 0
     },

@@ -1,6 +1,7 @@
+from json import loads
 from crawler import Crawler
 import urllib.request as req
-from time import sleep
+from time import perf_counter, sleep
 from strformat import StrFormat
 
 class NativeCrawler(Crawler):
@@ -30,34 +31,32 @@ class NativeCrawler(Crawler):
             self.pictures[key].extend(res)
         
     def get(self, id: str, name: str):
-        driver = Crawler.init_webdriver(self.config, self.headless)
-        driver.maximize_window()
-        i = 1
+        limit = 30
+        offset = 0
         total = 0
         while True:
-            print(f"Getting {name}'s pictures. Page {i}...")
-            driver.get(f"{self.illust_url_base}{id}?p={i}")
-            sleep(1)
-            Crawler.scroll(driver)
-            pic_elems = driver.find_elements("xpath", "//li//img")
-            if pic_elems == []:
+            webp = req.urlopen(f"https://www.vilipix.com/api/illust?user_id={id}&limit={limit}&offset={offset}")
+            webp_json = loads(webp.read().decode('utf-8'))['rows']
+            if webp_json == []:
                 break
-            series = driver.find_elements("xpath", "//li//a//span")
-            for pic, num in zip(pic_elems, series):
-                pic = pic.get_attribute("src")
-                if pic.find("img-error") >= 0:
-                    continue
-                start = pic.find("regular/") + 8
-                end=pic.rfind("_p")
-                pic = pic[start:end]
-                num = num.get_attribute("innerHTML")
-                num = int(num)
-                self.expand(f"{id} {name}", pic, num)
-                total += 1
-                if self.cap and total > self.cap:
+            for row in webp_json:
+                num = row['page_count']
+                regular_url = row['regular_url']
+                start = regular_url.find("regular/") + 8
+                end = regular_url.rfind("_p") 
+                self.expand(f"{id} {name}", regular_url[start:end], num)
+                if self.cap and total >= self.cap:
                     break
-            if self.cap and total > self.cap:
-                    break        
-            i += 1
-        driver.close()
-        StrFormat.info(f"Crawling completed for {StrFormat.cstr(name, style='BOLD', fcolor='CYAN')}.")
+                total += 1
+            if self.cap and total >= self.cap:
+                break
+            offset += 30
+    
+    def gets(self):
+        start = perf_counter()
+        for id, name in self.illusts.items():
+            print(f"Getting {name}'s pictures...")
+            self.get(id, name)
+        end = perf_counter()
+        print(f"{StrFormat.functional('Crawling')} completed in {StrFormat.time_str(end-start)}.")
+    

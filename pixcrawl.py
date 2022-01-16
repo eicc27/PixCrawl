@@ -9,6 +9,8 @@ from native_crawler import NativeCrawler
 from time import perf_counter
 from pixiv_crawler import PixivCrawler
 from strformat import StrFormat
+import warnings
+
 
 class PixCrawl:
     def __init__(self, cli: CLI, startup: str) -> None:
@@ -100,6 +102,7 @@ class PixCrawl:
 
 
 if __name__ == "__main__":
+    warnings.filterwarnings("ignore",category=DeprecationWarning)
     start = perf_counter()
     PixCrawl(CLI(argv, "args.json"), "startups.json")
     end = perf_counter()

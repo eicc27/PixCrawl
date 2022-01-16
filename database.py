@@ -19,7 +19,7 @@ class Database:
                 os.mkdir(f"{fname}/mirror")
     
     def write_map(self):
-        f = open("./data/illust.csv", 'a+')
+        f = open("./data/illust.csv", 'a+', encoding='utf-8')
         current = Database.get_key("./data/illust.csv")
         if "id" not in f.readline():
             f.write("id, name\n")
@@ -35,7 +35,7 @@ class Database:
     def write_url(self):
         for key, values in self.pictures.items():
             fname = f"./data/{encode_filename(key)}/mirror/url.csv"  if self.mirror else f"./data/{encode_filename(key)}/pixiv/url.csv"
-            f = open(fname, 'a+')
+            f = open(fname, 'a+', encoding='utf-8')
             current = Database.get_key(fname)
             if "url" not in f.readline():
                 f.write("url, r18, fmt\n")
@@ -52,7 +52,7 @@ class Database:
 
     @staticmethod
     def get_key(fname):
-        f = open(fname, 'r')
+        f = open(fname, 'r', encoding='utf-8')
         res = f.readlines()[1:]
         for i, r in enumerate(res):
             res[i] = r[:r.find(',')]

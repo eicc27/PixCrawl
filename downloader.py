@@ -33,7 +33,7 @@ class Downloader:
     Functional interfaces: downloads, recover
     '''
     def __init__(self, pictures: dict[str, list[str]], runtime: dict,
-                 mirror: bool) -> None:
+                mirror: bool) -> None:
         socket.setdefaulttimeout(10)
         self.mirror = mirror
         self.headless = "headless" in runtime.keys()
@@ -96,7 +96,7 @@ class Downloader:
     def download(self, key: str, url: str, r18: bool,
                  avail: dict[str, list], rest: dict[str, list],
                  pbar: tqdm, retry=0):
-        if retry == 2:
+        if retry == 3:
             StrFormat.severe_warning(f"Max retries({retry}) reached for {url}. Aborted.")
         filename = url[url.rfind('/') + 1:]
         Downloader.fake()
@@ -131,7 +131,7 @@ class Downloader:
              indent=4,
              ensure_ascii=False)
         progress_bar = tqdm(total=Downloader.total(target))
-        with ThreadPoolExecutor(max_workers=8) as pool:
+        with ThreadPoolExecutor() as pool:
             for key in target.keys():
                 for url, r18 in target[key]:
                     pool.submit(self.download, key, url, r18,
@@ -139,7 +139,7 @@ class Downloader:
         end = perf_counter()
         dump(self.err_pictures, open('error.json', 'w+', encoding='utf-8'), indent=4, ensure_ascii=False)
         print(
-            f"{StrFormat.functional('Naive downloading')} completed in {StrFormat.time_str(end - start)}."
+            f"\n{StrFormat.functional('Naive downloading')} completed in {StrFormat.time_str(end - start)}."
         )
         self.rematches(progress_bar, avail_pictures)
         return avail_pictures
@@ -161,7 +161,7 @@ class Downloader:
 
     def rematch_native(self, key: str, value: tuple[str, bool], pbar: tqdm, target: dict):
         url, _ = value
-        driver = Crawler.init_webdriver(self.config, True)
+        driver = Crawler.init_webdriver(self.config, self.headless)
         driver.maximize_window()
         driver.get(self.picture_base_url + url)
         Crawler.scroll(driver)
@@ -221,7 +221,10 @@ class Downloader:
         with ThreadPoolExecutor(max_workers=4) as pool:
             for key, values in self.unavail.items():
                 for value in values:
-                    pool.submit(rematch, key, value, pbar, target)
+                    if self.config['browser'] == 'firefox':
+                        pool.submit(rematch, key, value, pbar, target)
+                    else:
+                        rematch(key, value, pbar, target)
             pool.shutdown()
         end = perf_counter()
         pbar.close()

@@ -1,13 +1,13 @@
-from cProfile import run
 from concurrent.futures.thread import ThreadPoolExecutor
 from json import load
-import os
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium import webdriver
-from msedge.selenium_tools import EdgeOptions, Edge
+from selenium.webdriver.edge.options import Options as EdgeOptions
 from time import perf_counter, sleep
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from strformat import StrFormat
+from platform import system
+SYSTEM = system()
 
 class Crawler:
     def __init__(self, runtime: dict) -> None:
@@ -59,21 +59,24 @@ class Crawler:
         start = perf_counter()
         with ThreadPoolExecutor(max_workers=4) as pool:
             for id, name in self.illusts.items():
-                pool.submit(self.get, id, name)
+                if self.config["browser"] == 'firefox':
+                    pool.submit(self.get, id, name)
+                else:
+                    self.get(id, name)
         end = perf_counter()
         # dump(self.pictures, open("test.json", 'w'), indent=4)
         print(f"{StrFormat.functional('Crawling')} finished successfully in {StrFormat.time_str(end - start)}.")
 
     @staticmethod
     def scroll(driver: WebDriver):
-        for i in range(3):
+        for i in range(1, 5):
             driver.execute_script(
                 f'''
-                    var i = {i} * document.body.scrollHeight/3;
+                    var i = {i} * document.body.scrollHeight/4;
                     window.scrollTo(0,i);
                 '''
             )
-            sleep(3)
+            sleep(2)
 
     @staticmethod
     def init_webdriver(config: dict, headless: bool, is_async=False):
@@ -89,9 +92,15 @@ class Crawler:
                 return webdriver.Firefox(options=options, desired_capabilities=cap)
             case "chrome":
                 options = webdriver.ChromeOptions()
-                options.headless = headless
+                if SYSTEM == "Linux":
+                    options.headless = headless
+                if headless:
+                    options.add_argument("window-size=1920,1080")
                 options.add_experimental_option('excludeSwitches', ['enable-logging'])
-                options.add_argument(f"user-data-dir={config['chrome']['profile']}")
+                sep = config["chrome"]["profile"].rfind('/')
+                usr_data_dir, prof_dir = config["chrome"]["profile"][:sep], config["chrome"]["profile"][sep+1:]
+                options.add_argument(f"user-data-dir={usr_data_dir}")
+                options.add_argument(f'profile-directory={prof_dir}')
                 if is_async:
                     cap = DesiredCapabilities.CHROME
                     cap["pageLoadStrategy"] = "none"
@@ -100,9 +109,16 @@ class Crawler:
                 options = EdgeOptions()
                 options.use_chromium = True
                 options.headless = headless
+                if headless:
+                    options.add_argument("window-size=1920,1080")
                 options.add_experimental_option('excludeSwitches', ['enable-logging'])
-                options.add_argument(f"user-data-dir={config['edge']['profile']}")
+                sep = config["edge"]["profile"].rfind('/')
+                usr_data_dir, prof_dir = config["edge"]["profile"][:sep], config["edge"]["profile"][sep+1:]
+                options.add_argument(f"user-data-dir={usr_data_dir}")
+                options.add_argument(f'profile-directory={prof_dir}')
+                if SYSTEM == 'Linux':
+                    options.binary_location = config["edge"]["linux_bin_path"]
                 if is_async:
                     cap = DesiredCapabilities.EDGE
                     cap["pageLoadStrategy"] = "none"
-                return Edge(options=options, desired_capabilities=cap)
+                return webdriver.Edge(options=options, capabilities=cap)
