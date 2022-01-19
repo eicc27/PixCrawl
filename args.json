@@ -58,5 +58,8 @@
         "alias": "--help",
         "desc": "Get help",
         "n": 0
+    },
+    "--nocheck": {
+        "desc": "Disable the pre-initialization check of the program."
     }
 }

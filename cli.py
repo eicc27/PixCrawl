@@ -2,10 +2,12 @@ import json
 
 from strformat import StrFormat
 
+
 class CLI:
     '''
-     If a new function is specified, change the code in the map_runtime.
+    If a new function is specified, change the code in the match...case block of map_runtime.
     '''
+
     def __init__(self, args: list[str], config: str) -> None:
         self.runtime = {}
         self.args = args[1:]
@@ -42,14 +44,35 @@ class CLI:
             origin = self.args[ind]
             if origin in self.alias.keys():
                 origin = self.alias[origin]
+            if "n" not in self.avail_args[origin].keys():
+                ind += 1
+                continue
             elif origin not in self.avail_args.keys():
-                print(f"Command {origin} could not be found. Type -h for help.")
+                print(
+                    f"Command {origin} could not be found. Type -h for help.")
                 exit(1)
             if "father" not in self.avail_args[origin].keys():
                 is_functional.append(True)
+            if "father" in self.avail_args[origin].keys():
+                f = False
+                for father in self.avail_args[origin]["father"]:
+                    if "alias" in self.avail_args[father]:
+                        father_alias = self.avail_args[father]["alias"]
+                        if father_alias in self.args:
+                            f = True
+                            break
+                    if father in self.args:
+                        f = True
+                        break
+                if not f:
+                    print(
+                        f"Command {origin} does not have an available dependent. Type -h for help.")
+                    print(
+                        f"It must be coupled with one of the following functional arguments: {self.avail_args[origin]['father']}")
+                    exit(1)
             bias = 1
             while ind + bias < args_len and self.args[ind + bias] not in self.keys:
-                    bias += 1
+                bias += 1
             parsed_args.append(self.args[ind: ind + bias])
             ind += bias
         if len(is_functional) > 1:
@@ -61,29 +84,13 @@ class CLI:
         return parsed_args
 
     def print_help(self):
-        print("When specifying the browser's user profile, here are some hints:")
-        print("If you wish to use the browser while using its user data for automation, you need at least two profiles. If you don't have, create another one and use that.")
-        print("Firefox:")
-        print("\tFirefox's user data directory can be accessed by typing about:profiles in Firefox.")
-        print("\tBy default Firefox generates two user profiles. One for current user and the other for backup.")
-        print("\tThe default location for firefox's directory:")
-        print("\t\tWindows: C:/Users/<your Windows login username>/AppData/Roaming/Mozilla/Firefox/Profiles/")
-        print("\t\tLinux:  ~/.mozilla/firefox/")
-        print("Chrome:")
-        print("\tDefault location:")
-        print("\t\tWindows: C:/Users/<username>/AppData/Local/Google/Chrome/User Data/Default")
-        print("\t\tLinux: ~/.config/google-chrome/default")
-        print("Edge:")
-        print("\t Default location:")
-        print("\t\tWindows: C:/Users/<Current-user>/AppData/Local/Microsoft/Edge/User Data/Default")
-        print("\nSupported arguments:")
         for key in self.avail_args.keys():
             print(f"{key}:")
             if "alias" in self.avail_args[key]:
                 print(f"\talias: {self.avail_args[key]['alias']}")
             if "father" in self.avail_args[key]:
                 print(f"\tdependencies:{self.avail_args[key]['father']}")
-            print(f"\t{self.avail_args[key]['desc']}") 
+            print(f"\t{self.avail_args[key]['desc']}")
             req_args = self.avail_args[key]['n']
             if req_args < 0:
                 req_args = "at least 1, no cap"
@@ -91,7 +98,8 @@ class CLI:
                 req_args = "no arguments"
             print(f"\trequired number of arguments: {req_args}")
             if "type" in self.avail_args[key]:
-                print(f"\taccepted argument type: {self.avail_args[key]['type']}")
+                print(
+                    f"\taccepted argument type: {self.avail_args[key]['type']}")
 
     def map_runtime(self):
         for parsed_arg in self.parsed_args:
@@ -104,7 +112,8 @@ class CLI:
             if self.avail_args[arg_name]['n'] >= 0 and len(parsed_arg) != self.avail_args[arg_name]['n']:
                 print(f"Invalid parameter number for {arg_name}.")
                 print(f"Given number is {len(parsed_arg)}.")
-                print(f"It requires {self.avail_args[arg_name]['n']} param(s).")
+                print(
+                    f"It requires {self.avail_args[arg_name]['n']} param(s).")
                 exit(1)
             elif self.avail_args[arg_name]['n'] < 0 and len(parsed_arg) < 1:
                 print(f"At least one parameter for {arg_name} is needed.")
@@ -135,4 +144,4 @@ class CLI:
                     exit(0)
 
     def debug(self):
-        print(self.runtime)        
+        print(self.runtime)
